@@ -1,0 +1,29 @@
+# Core
+fastapi>=0.111.0
+uvicorn[standard]>=0.29.0
+pydantic>=2.7.0
+
+# vLLM client (OpenAI-compatible API calls to vLLM server)
+openai>=1.30.0
+
+# TTS — Indic Parler-TTS (runs in-process; vLLM doesn't support TTS models)
+transformers>=4.41.0
+torch>=2.3.0
+accelerate>=0.30.0
+sentencepiece>=0.2.0
+protobuf>=4.25.0
+git+https://github.com/huggingface/parler-tts.git
+soundfile>=0.12.1
+
+# Embeddings — sentence-transformers used only by precompute script (one-time)
+# Runtime embedding goes through vLLM. Keep installed for scripts/precompute_embeddings.py
+sentence-transformers>=3.0.0
+numpy>=1.26.0
+
+# Data download
+datasets>=2.19.0
+huggingface_hub>=0.23.0
+
+# Utilities
+python-multipart>=0.0.9
+psutil>=5.9

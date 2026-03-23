@@ -1,0 +1,21 @@
+apiVersion: apisix.apache.org/v2
+kind: ApisixRoute
+metadata:
+  name: tts-route
+  namespace: default
+spec:
+  http:
+    - name: tts
+      match:
+        hosts:
+          - api.example.com
+        paths:
+          - /v1/tts
+      backends:
+        - serviceName: tts-service
+          servicePort: 8003
+      plugins:
+        - name: proxy-rewrite
+          enable: true
+          config:
+            uri: /tts

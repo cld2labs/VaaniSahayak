@@ -1,0 +1,111 @@
+# ──────────────────────────────────────────────
+# Environment variables
+# ──────────────────────────────────────────────
+.env
+.env.*
+!.env.example
+
+# ──────────────────────────────────────────────
+# Python
+# ──────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+*.egg
+dist/
+build/
+.venv/
+venv/
+env/
+*.whl
+
+# ──────────────────────────────────────────────
+# Node / Frontend
+# ──────────────────────────────────────────────
+node_modules/
+frontend/dist/
+frontend/node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ──────────────────────────────────────────────
+# Data & model artefacts (large files)
+# ──────────────────────────────────────────────
+backend/data/schemes.json
+backend/data/scheme_embeddings.npy
+*.wav
+*.mp3
+*.npy
+*.safetensors
+*.bin
+*.gguf
+*.onnx
+
+# HuggingFace cache
+.cache/
+~/.cache/huggingface/
+
+# ──────────────────────────────────────────────
+# IDE / Editor
+# ──────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.settings/
+
+# ──────────────────────────────────────────────
+# Testing & type checking
+# ──────────────────────────────────────────────
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+
+# ──────────────────────────────────────────────
+# Security scan outputs
+# ──────────────────────────────────────────────
+bandit-*.html
+bandit-*.txt
+bandit-*.json
+trivy-*.html
+trivy-*.json
+
+# ──────────────────────────────────────────────
+# OS files
+# ──────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# ──────────────────────────────────────────────
+# Build & temporary files
+# ──────────────────────────────────────────────
+*.log
+*.tmp
+*.bak
+*.orig
+
+# ──────────────────────────────────────────────
+# Docker
+# ──────────────────────────────────────────────
+docker-compose.override.yml
+
+# ──────────────────────────────────────────────
+# Separate projects / not part of this repo
+# ──────────────────────────────────────────────
+CodeTrans/
+CodeTranslation/
+/k8s/
+# ──────────────────────────────────────────────
+# Reference documents
+# ──────────────────────────────────────────────
+*.docx
+*.docx.pdf
+~$*

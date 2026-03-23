@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tts-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: tts
+  template:
+    metadata:
+      labels:
+        app: tts
+    spec:
+      containers:
+      - name: tts
+        image: tts:local
+        imagePullPolicy: Never
+
+        ports:
+        - containerPort: 8003
+
+        env:
+        - name: HF_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: hf-token
+              key: HUGGINGFACEHUB_API_TOKEN
+
+        - name: TTS_ATTN_IMPL
+          value: "auto"   # tries split(decoder=sdpa,encoder=eager) → sdpa → flash → eager
+
+        - name: TTS_PORT
+          value: "8003"
+
+        - name: TTS_COMPILE_MODE
+          value: "default"   # works with static cache; skipped automatically without it
+
+        - name: TOKENIZERS_PARALLELISM
+          value: "false"   # suppress fork warnings from torch.compile
+
+        resources:
+          limits:
+            nvidia.com/gpu: 1
+            cpu: "2"
+            memory: "8Gi"
+          requests:
+            cpu: "1"
+            memory: "4Gi"
+
+      restartPolicy: Always

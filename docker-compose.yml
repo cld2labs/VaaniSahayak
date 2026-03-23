@@ -1,0 +1,43 @@
+# NOTE: server_param1.py runs NATIVELY on your Mac (MPS/Apple Silicon).
+# Docker on Mac uses Linux containers — Metal (MPS) is unavailable inside containers.
+# Start param1 server before docker compose up:
+#   python server_param1.py --preload --port 8001
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      # Points to Param-1 running natively on Mac host (MPS acceleration)
+      VLLM_LLM_URL: http://host.docker.internal:8001/v1
+      # Local TTS fallback (used when EI_TTS_URL is not set)
+      TTS_SERVER_URL: http://host.docker.internal:8003
+      # EI GPU stack — pass through from .env (leave blank to use local TTS)
+      EI_TTS_URL: ${EI_TTS_URL:-}
+      EI_TTS_TOKEN: ${EI_TTS_TOKEN:-}
+      EI_KEYCLOAK_URL: ${EI_KEYCLOAK_URL:-}
+      EI_KEYCLOAK_REALM: ${EI_KEYCLOAK_REALM:-ei}
+      EI_CLIENT_ID: ${EI_CLIENT_ID:-}
+      EI_CLIENT_SECRET: ${EI_CLIENT_SECRET:-}
+      EI_VERIFY_SSL: ${EI_VERIFY_SSL:-true}
+    volumes:
+      # Bind-mount host HF cache so the container shares downloaded models and token
+      - ~/.cache/huggingface:/root/.cache/huggingface
+      # Mount scheme data so you can update it without rebuilding
+      - ./backend/data:/app/backend/data
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    ports:
+      - "3002:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
