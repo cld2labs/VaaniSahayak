@@ -84,9 +84,8 @@ RUN pip install --upgrade pip && \
 # RUN pip install flash-attn --no-build-isolation
 
 # ── Application code ────────────────────────────────────────────────────────────
-COPY server_tts_cuda.py .
-COPY text_normalize.py  .
-COPY scripts/download_weights.py download_weights.py
+COPY servers/text_normalize.py  .
+COPY scripts/archive/download_weights.py download_weights.py
 
 # Create HF cache directory with correct permissions
 RUN mkdir -p /app/hf_cache && chmod 777 /app/hf_cache

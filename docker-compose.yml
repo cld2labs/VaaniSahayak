@@ -1,7 +1,7 @@
-# NOTE: server_param1.py runs NATIVELY on your Mac (MPS/Apple Silicon).
+# NOTE: servers/server_param1.py runs NATIVELY on your Mac (MPS/Apple Silicon).
 # Docker on Mac uses Linux containers — Metal (MPS) is unavailable inside containers.
 # Start param1 server before docker compose up:
-#   python server_param1.py --preload --port 8001
+#   python servers/server_param1.py --preload --port 8001
 
 services:
   backend:

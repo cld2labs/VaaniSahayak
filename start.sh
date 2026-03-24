@@ -27,8 +27,8 @@ done
 
 kill_servers() {
   echo "Stopping any existing model servers..."
-  pkill -f "server_param1.py" 2>/dev/null || true
-  pkill -f "server_tts.py" 2>/dev/null || true
+  pkill -f "servers/server_param1.py" 2>/dev/null || true
+  pkill -f "servers/server_tts.py" 2>/dev/null || true
   sleep 1
 }
 
@@ -62,7 +62,7 @@ kill_servers
 # ── Param-1 LLM server ───────────────────────────────────────────────────────
 
 echo "[1/3] Starting Param-1 LLM server (port 8001)..."
-python server_param1.py --preload --port 8001 > /tmp/param1.log 2>&1 &
+python servers/server_param1.py --preload --port 8001 > /tmp/param1.log 2>&1 &
 PARAM1_PID=$!
 echo "      PID: $PARAM1_PID  |  tail -f /tmp/param1.log"
 wait_for_url "http://localhost:8001/v1/models" "Param-1"
@@ -78,7 +78,7 @@ if [ "$NO_TTS" = false ]; then
   if python3 -c "exit(0 if float('$FREE') >= $MIN_FOR_TTS else 1)" 2>/dev/null; then
     echo "[2/3] Starting Indic Parler-TTS server (port 8003)..."
     echo "      (Waiting for TTS model to load — this takes ~20s)"
-    python server_tts.py --preload --port 8003 > /tmp/tts.log 2>&1 &
+    python servers/server_tts.py --preload --port 8003 > /tmp/tts.log 2>&1 &
     TTS_PID=$!
     echo "      PID: $TTS_PID  |  tail -f /tmp/tts.log"
 
@@ -132,4 +132,4 @@ echo "  tail -f /tmp/param1.log"
 echo "  tail -f /tmp/tts.log"
 echo "  docker logs vaani-backend-1 -f"
 echo ""
-echo "To stop: pkill -f server_param1.py; pkill -f server_tts.py; docker compose down"
+echo "To stop: pkill -f servers/server_param1.py; pkill -f servers/server_tts.py; docker compose down"

@@ -86,7 +86,7 @@ cd frontend && npm install && npm run dev
 ## Model Serving Architecture
 | Component | How it runs | Port |
 |-----------|-------------|------|
-| Param-1 LLM | server_param1.py (transformers + MPS) | 8001 |
+| Param-1 LLM | servers/server_param1.py (transformers + MPS) | 8001 |
 | Embeddings | sentence-transformers in-process | — |
 | TTS (Indic Parler-TTS) | In-process (FastAPI loads it) | — |
 | FastAPI backend | uvicorn | 8000 |
@@ -94,7 +94,7 @@ cd frontend && npm install && npm run dev
 
 **Why not vLLM/MLX LM for Param-1?**
 Param-1 uses a custom architecture `ParamBharatGenForCausalLM` that is not supported by either
-vLLM 0.16.0 or mlx-lm 0.31.0. `server_param1.py` wraps transformers directly and exposes
+vLLM 0.16.0 or mlx-lm 0.31.0. `servers/server_param1.py` wraps transformers directly and exposes
 an OpenAI-compatible `/v1/chat/completions` API on port 8001 — same interface, no external dep.
 
 The FastAPI backend calls it via the `openai` client with `base_url="http://localhost:8001/v1"`.

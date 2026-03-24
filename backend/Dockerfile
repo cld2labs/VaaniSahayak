@@ -16,7 +16,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy source (project root as build context)
 COPY backend/ ./backend/
 COPY scripts/ ./scripts/
-COPY text_normalize.py ./
+COPY servers/text_normalize.py ./
 
 ENV PYTHONPATH=/app
 

@@ -101,10 +101,10 @@ Everything runs on Indian AI models — no OpenAI, no external APIs:
         ┌────────────────┼─────────────────┐
         ▼                ▼                 ▼
 ┌──────────────┐ ┌──────────────┐ ┌────────────────────────┐
-│ Embeddings   │ │ server_param1│ │  TTS (priority order)  │
-│ (in-process) │ │ .py (:8001)  │ │  1. EI GPU Stack       │
-│ MiniLM-L6-v2 │ │ Param-1 +MPS │ │     (APISIX + Keycloak)│
-└──────────────┘ └──────────────┘ │  2. Local server_tts.py│
+│ Embeddings   │ │  Param-1     │ │  TTS (priority order)  │
+│ (in-process) │ │  LLM server  │ │  1. EI GPU Stack       │
+│ MiniLM-L6-v2 │ │  (:8001 MPS) │ │     (APISIX + Keycloak)│
+└──────────────┘ └──────────────┘ │  2. Local TTS (:8003)  │
                                   │     (:8003, MPS)       │
                                   └────────────────────────┘
 ```
@@ -144,10 +144,10 @@ python scripts/download_data.py
 python scripts/precompute_embeddings.py
 
 # 6. Start the Param-1 LLM server (Terminal 1)
-python server_param1.py --preload --port 8001
+python servers/server_param1.py --preload --port 8001
 
 # 7. Start the TTS server (Terminal 2)
-python server_tts.py --preload --port 8003
+python servers/server_tts.py --preload --port 8003
 
 # 8. Start the FastAPI backend (Terminal 3)
 uvicorn backend.main:app --reload --port 8000
@@ -160,12 +160,12 @@ Open **http://localhost:5173** in your browser.
 
 ### Docker Deployment
 
-> **Note:** `server_param1.py` and `server_tts.py` must run natively on your Mac for MPS (Metal) acceleration. Docker on macOS uses Linux containers where MPS is unavailable.
+> **Note:** `servers/server_param1.py` and `servers/server_tts.py` must run natively on your Mac for MPS (Metal) acceleration. Docker on macOS uses Linux containers where MPS is unavailable.
 
 ```bash
 # 1. Start model servers natively (two terminals)
-python server_param1.py --preload --port 8001
-python server_tts.py --preload --port 8003
+python servers/server_param1.py --preload --port 8001
+python servers/server_tts.py --preload --port 8003
 
 # 2. Start backend + frontend via Docker
 docker compose up --build
@@ -176,20 +176,34 @@ docker compose up --build
 
 ### EI GPU TTS Deployment
 
-The `Cuda/` directory contains everything needed to deploy Indic Parler-TTS on a CUDA GPU server (the Enterprise Inference stack):
+The `Cuda/` directory contains everything needed to deploy Indic Parler-TTS on a CUDA GPU server. See [`Cuda/README.md`](Cuda/README.md) for the full deployment guide.
+
+**Quick version:**
 
 ```bash
-# Build the CUDA TTS Docker image
-cd Cuda
-docker build -t indic-parler-tts:latest .
+# 1. Create HF token secret
+kubectl create secret generic hf-token \
+  --from-literal=HUGGINGFACEHUB_API_TOKEN=hf_YOUR_TOKEN
 
-# Deploy to Kubernetes (requires a GPU node)
+# 2. Build Docker image on the GPU machine
+cd Cuda && docker build -t tts:local .
+
+# 3. Deploy
 kubectl apply -f k8s/tts-deployment.yaml
 kubectl apply -f k8s/tts-service.yaml
-kubectl apply -f k8s/tts-apisix-route.yaml   # exposes via APISIX gateway
+kubectl apply -f k8s/tts-apisix-route.yaml
+
+# 4. Verify (look for "READY" in logs)
+kubectl logs -f deployment/tts-deployment
+
+# 5. Point Vaani backend to it (in .env)
+EI_TTS_URL=http://api.example.com:32237/v1/tts
+EI_TTS_TOKEN=<your-bearer-token>
 ```
 
-Once deployed, point your backend to the EI stack by setting `EI_TTS_URL` and authentication credentials in `.env`. The backend's TTS router will automatically prefer the EI GPU path over the local MPS server.
+The backend's TTS router automatically prefers the EI GPU path over the local MPS server when `EI_TTS_URL` is configured.
+
+**Supported GPUs:** V100 (split SDPA + KV cache), A10/A100/H100 (+ Flash Attention 2 + torch.compile).
 
 ---
 
@@ -229,22 +243,25 @@ vaani/
 │           ├── ResponsePanel.jsx  # Streaming answer + audio playback
 │           ├── SchemeCard.jsx     # Scheme result card
 │           └── ModelBadge.jsx     # Sovereign AI model attribution
-├── Cuda/                            # EI GPU TTS deployment package
-│   ├── Dockerfile                   # NVIDIA CUDA 12.1 + Parler-TTS image
+├── Cuda/                            # EI GPU TTS deployment package (see Cuda/README.md)
+│   ├── Dockerfile                   # NVIDIA CUDA 12.1 + PyTorch 2.3.1 image
 │   ├── server_tts_cuda.py          # CUDA-optimized TTS server
-│   ├── text_normalize.py           # Hindi/Telugu text normalization
+│   ├── text_normalize.py           # Hindi text normalization for TTS
 │   ├── requirements.txt            # Pinned Python deps for CUDA build
+│   ├── README.md                   # Full deployment guide
 │   └── k8s/
-│       ├── tts-deployment.yaml     # K8s Deployment (GPU node, HF cache PVC)
+│       ├── tts-deployment.yaml     # K8s Deployment (GPU node, env vars)
 │       ├── tts-service.yaml        # K8s ClusterIP Service
-│       └── tts-apisix-route.yaml   # APISIX route → TTS service
+│       └── tts-apisix-route.yaml   # APISIX gateway route (/v1/tts)
 ├── scripts/
-│   ├── download_data.py           # Scrape myscheme.gov.in dataset → schemes.json
-│   └── precompute_embeddings.py   # Embed all 2,000+ schemes (one-time)
-├── server_param1.py               # Param-1 OpenAI-compatible server (MPS)
-├── server_tts.py                  # Indic Parler-TTS server (MPS, local fallback)
-├── server_tts_cuda.py             # TTS server variant for CUDA GPUs
-├── text_normalize.py              # Hindi/Telugu text normalization
+│   ├── download_data.py           # Pull myscheme.gov.in dataset → schemes.json
+│   ├── precompute_embeddings.py   # Embed all 2,086 schemes (one-time)
+│   ├── test_remote_tts.py         # Benchmark TTS: sequential / parallel / batch
+│   └── archive/                   # Retired test scripts
+├── servers/
+│   ├── server_param1.py           # Param-1 OpenAI-compatible server (MPS)
+│   ├── server_tts.py              # Indic Parler-TTS server (MPS, local fallback)
+│   └── text_normalize.py          # Hindi text normalization (shared)
 ├── docker-compose.yml
 ├── Dockerfile.tts
 ├── .env.example
@@ -330,19 +347,19 @@ Copy `.env.example` to `.env` and configure:
 
 | Component | Server | Port | Device |
 |-----------|--------|------|--------|
-| Param-1 LLM | `server_param1.py` | 8001 | MPS (Apple Silicon) |
+| Param-1 LLM | `servers/server_param1.py` | 8001 | MPS (Apple Silicon) |
 | Indic Parler-TTS (EI) | EI GPU Stack (APISIX + Keycloak) | remote | CUDA GPU |
-| Indic Parler-TTS (local) | `server_tts.py` | 8003 | MPS (Apple Silicon) |
+| Indic Parler-TTS (local) | `servers/server_tts.py` | 8003 | MPS (Apple Silicon) |
 | Embeddings | sentence-transformers (in-process) | — | CPU |
 | FastAPI Backend | uvicorn | 8000 | — |
 | React Frontend | Vite dev / Nginx | 5173 / 3002 | — |
 
 **TTS routing priority:**
 1. **Enterprise Inference (EI) GPU stack** — Keycloak-authenticated, GPU-accelerated Indic Parler-TTS behind an APISIX gateway. Supports batch synthesis, parallel sentence synthesis, and SSE streaming. Configure via `EI_TTS_URL` + Keycloak or static token.
-2. **Local `server_tts.py`** — MPS-accelerated fallback on Apple Silicon. Used when EI is not configured.
+2. **Local `servers/server_tts.py`** — MPS-accelerated fallback on Apple Silicon. Used when EI is not configured.
 
 **Why custom model servers instead of vLLM?**
-Param-1 uses a custom architecture (`ParamBharatGenForCausalLM`) not supported by vLLM or mlx-lm. `server_param1.py` wraps HuggingFace Transformers directly and exposes an OpenAI-compatible `/v1/chat/completions` API — same interface, no compatibility issues.
+Param-1 uses a custom architecture (`ParamBharatGenForCausalLM`) not supported by vLLM or mlx-lm. `servers/server_param1.py` wraps HuggingFace Transformers directly and exposes an OpenAI-compatible `/v1/chat/completions` API — same interface, no compatibility issues.
 
 ---
 
@@ -369,7 +386,7 @@ Param-1 uses a custom architecture (`ParamBharatGenForCausalLM`) not supported b
 - **Param-1 context window:** 2,048 tokens. Each scheme summary is capped at ~150 tokens. Top-3 schemes ≈ 450 tokens, leaving ~1,500 for instruction + response.
 - **TTS latency (EI):** Sub-second per sentence on GPU. Batch and parallel synthesis modes overlap network I/O with GPU compute for faster end-to-end audio.
 - **TTS latency (local):** ~5–10 seconds per 3-sentence response on MPS. The streaming `/ask/speak` endpoint sends audio chunk-by-chunk so playback begins before full synthesis completes.
-- **MPS memory management:** `server_param1.py` supports `/suspend` and `/resume` endpoints to offload weights to CPU when TTS needs GPU memory.
+- **MPS memory management:** `servers/server_param1.py` supports `/suspend` and `/resume` endpoints to offload weights to CPU when TTS needs GPU memory.
 - **Retrieval:** Cosine similarity over 2,000+ pre-computed 384-dim embeddings runs in <10 ms.
 
 ---

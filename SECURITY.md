@@ -13,7 +13,7 @@ Vaani Sahayak is an **educational and demonstration project**. It is not designe
 | **API Tokens** | HuggingFace tokens and EI credentials are stored in `.env`. Never commit this file. |
 | **CORS** | Default configuration allows `localhost` origins only. Restrict `CORS_ORIGINS` in production. |
 | **SSL Verification** | `EI_VERIFY_SSL` can be set to `false` for development with self-signed certificates. Always enable in production. |
-| **Model Servers** | `server_param1.py` and `server_tts.py` bind to `0.0.0.0` by default. Restrict to `127.0.0.1` if not serving external clients. |
+| **Model Servers** | `servers/server_param1.py` and `servers/server_tts.py` bind to `0.0.0.0` by default. Restrict to `127.0.0.1` if not serving external clients. |
 | **User Input** | User queries are passed directly to the LLM context. Consider input sanitization for production deployments. |
 
 ---

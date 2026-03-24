@@ -87,9 +87,9 @@ python scripts/precompute_embeddings.py
 **Symptom:** Audio takes >15 seconds or sounds distorted
 
 **Fix:**
-- Ensure `server_tts.py` is using MPS:
+- Ensure `servers/server_tts.py` is using MPS:
   ```bash
-  python server_tts.py --preload --port 8003
+  python servers/server_tts.py --preload --port 8003
   # Should log: "Using device: mps"
   ```
 - If MPS is unavailable, it falls back to CPU (much slower)
@@ -145,7 +145,7 @@ npm run build
 **Symptom:** Text appears partially, then stops
 
 **Fix:**
-- Check `server_param1.py` logs for timeout or memory errors
+- Check `servers/server_param1.py` logs for timeout or memory errors
 - Ensure the Param-1 server hasn't been suspended (`/suspend`)
 - Reduce query complexity to stay within the 2,048-token context window
 

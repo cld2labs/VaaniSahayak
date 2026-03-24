@@ -79,8 +79,8 @@ python scripts/download_data.py
 python scripts/precompute_embeddings.py
 
 # 6. Start servers (see README.md for full instructions)
-python server_param1.py --preload --port 8001   # Terminal 1
-python server_tts.py --preload --port 8003       # Terminal 2
+python servers/server_param1.py --preload --port 8001   # Terminal 1
+python servers/server_tts.py --preload --port 8003       # Terminal 2
 uvicorn backend.main:app --reload --port 8000    # Terminal 3
 cd frontend && npm install && npm run dev         # Terminal 4
 ```
@@ -89,8 +89,8 @@ cd frontend && npm install && npm run dev         # Terminal 4
 
 ```bash
 # Model servers must run natively for MPS acceleration
-python server_param1.py --preload --port 8001
-python server_tts.py --preload --port 8003
+python servers/server_param1.py --preload --port 8001
+python servers/server_tts.py --preload --port 8003
 
 # Start backend + frontend
 docker compose up --build
