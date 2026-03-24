@@ -18,7 +18,7 @@ def load_model():
         print(f"[Param-1] vLLM server ready. Available models: {names}")
     except Exception as e:
         print(f"[Param-1] WARNING: vLLM server not reachable at {VLLM_LLM_URL} — {e}")
-        print("  Start it with: python server_param1.py --preload --port 8001")
+        print("  Start it with: python servers/server_param1.py --preload --port 8001")
 
 
 def generate(prompt: str) -> str:

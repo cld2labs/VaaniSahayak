@@ -496,7 +496,7 @@ def narrate(req: NarrateRequest):
                     chunk_count += 1
 
             if chunk_count == 0:
-                yield f"data: {json.dumps({'type': 'error', 'detail': 'TTS unavailable — check server_tts.py is running.'})}\n\n"
+                yield f"data: {json.dumps({'type': 'error', 'detail': 'TTS unavailable — check servers/server_tts.py is running.'})}\n\n"
         except Exception as exc:
             yield f"data: {json.dumps({'type': 'error', 'detail': str(exc)})}\n\n"
         finally:

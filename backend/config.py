@@ -11,9 +11,9 @@ TTS_TOKENIZER_ID = "ai4bharat/indic-parler-tts"
 EMBEDDING_MODEL_ID = "sentence-transformers/all-MiniLM-L6-v2"
 
 # --- Model server endpoints ---
-# param1-server (transformers + MPS): python server_param1.py --preload --port 8001
+# param1-server (transformers + MPS): python servers/server_param1.py --preload --port 8001
 VLLM_LLM_URL = os.getenv("VLLM_LLM_URL", "http://localhost:8001/v1")
-# TTS server (Indic Parler-TTS + MPS): python server_tts.py --preload --port 8003
+# TTS server (Indic Parler-TTS + MPS): python servers/server_tts.py --preload --port 8003
 TTS_SERVER_URL = os.getenv("TTS_SERVER_URL", "http://localhost:8003")
 
 # --- Data paths ---

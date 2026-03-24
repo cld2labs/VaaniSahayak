@@ -386,7 +386,7 @@ def load_tts() -> None:
         return
     logger.warning(
         "[TTS] No TTS backend available. "
-        "Start server_tts.py locally or configure EI_TTS_URL + Keycloak env vars."
+        "Start servers/server_tts.py locally or configure EI_TTS_URL + Keycloak env vars."
     )
 
 
