@@ -257,13 +257,13 @@ vaani/
 │   ├── download_data.py           # Pull myscheme.gov.in dataset → schemes.json
 │   ├── precompute_embeddings.py   # Embed all 2,086 schemes (one-time)
 │   ├── test_remote_tts.py         # Benchmark TTS: sequential / parallel / batch
+│   ├── start.sh                   # One-command Mac startup (servers + Docker)
 │   └── archive/                   # Retired test scripts
 ├── servers/
 │   ├── server_param1.py           # Param-1 OpenAI-compatible server (MPS)
 │   ├── server_tts.py              # Indic Parler-TTS server (MPS, local fallback)
 │   └── text_normalize.py          # Hindi text normalization (shared)
 ├── docker-compose.yml
-├── Dockerfile.tts
 ├── .env.example
 ├── .gitignore
 ├── README.md
